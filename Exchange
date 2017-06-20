@@ -1,0 +1,108 @@
+#!/usr/bin/python
+
+import sys
+
+
+book = {}
+output = []
+
+def parse_entry(line):
+        trader, inst, vol, price = line.split(":")
+	return (trader.strip(), inst.strip(), float(vol.strip()), float(price.strip()))
+
+def match_entry(buy, sell):
+        vol = 0
+        pr = 0
+        if buy[2] > sell[2]:
+                pr = buy[2]
+                if buy[1] > sell[1]:
+                        vl = sell[1]
+                        buy = (buy[0], buy[1] - sell[1], buy[2])
+                        sell = (sell[0], 0, sell[2])
+                else:
+                        vl = buy[1]
+                        buy = (buy[0],0, buy[2])
+                        sell = (sell[0], sell[1] - buy[1], sell[2])
+
+        trade = (buy[0], sell[0], vl, pr)
+        return buy, sell, trade
+
+def insert_buy_order(buy, buy_orders):
+        i = 0
+        find = False
+        while not find and i < len(buy_orders) :
+                if buy[2] < buy_orders[i][2]:
+                        i = i + 1
+                else:
+                        find = True
+
+        buy_orders.insert(i, buy)
+        return buy_orders
+
+def insert_sell_order(sell, sell_orders):
+        i = 0
+        find = False
+        while not find and i < len(sell_orders) :
+                if sell[2] > sell_orders[i][2]:
+                        i = i + 1
+                else:
+                        find = True
+
+        sell_orders.insert(i, sell)
+        return sell_orders
+
+def book_entry(entry):
+        global output
+        trader, inst, vol, price = entry
+        if inst not in book:
+                book[inst] = {
+                        'buy': [],
+                        'sell': []
+                }
+
+        if vol > 0:
+                buy = (trader, vol, price)
+                sell_orders = book.get(inst, {}).get('sell')
+                i = 0
+		while buy[1] > 0 and i < len(sell_orders) and buy[2] >= sell_orders[i][2]:
+                        buy, sell, trade = match_entry(buy, sell_orders[i])
+                        i = i + 1
+                        if trade[2] > 0:
+                                output.append(trade)
+
+                # remove sold orders
+                sell_orders = [sells for sells in sell_orders if sells[1] > 0]
+                
+		# insert reminder of buy order
+                if buy[1] > 0:
+                        buy_orders = book.get(inst, {}).get('buy')
+                        buy_orders = insert_buy_order(buy, buy_orders)
+                        book[inst]['buy'] = buy_orders
+
+        if vol < 0:
+                sell = (trader, abs(vol), price)
+                buy_orders = book.get(inst, {}).get('buy')
+                i = 0
+                while sell[1] > 0 and i < len(buy_orders) and sell[2] <= buy_orders[i][2]:
+                        buy, sell, trade = match_entry(buy_orders[i], sell)
+                        i = i + 1
+                        if trade[2] > 0:
+                                output.append(trade)
+
+                # remove bought orders
+                buy_orders = [buys for buys in buy_orders if buys[1] > 0]
+
+                # insert reminder of buy order
+                if sell[1] > 0:
+                        sell_orders = book.get(inst, {}).get('sell')
+                        sell_orders = insert_sell_order(sell, sell_orders)
+                        book[inst]['sell'] = sell_orders
+
+
+
+
+for line in sys.stdin:
+        entry = parse_entry(line)
+        book_entry(entry)
+
+print output
