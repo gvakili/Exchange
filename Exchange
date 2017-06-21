@@ -13,7 +13,7 @@ def parse_entry(line):
 def match_entry(buy, sell):
         vl = 0
         pr = 0
-        if buy[2] > sell[2]:
+        if buy[2] >= sell[2]:
                 pr = buy[2]
                 if buy[1] > sell[1]:
                         vl = sell[1]
