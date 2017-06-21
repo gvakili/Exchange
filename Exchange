@@ -11,7 +11,7 @@ def parse_entry(line):
 	return (trader.strip(), inst.strip(), float(vol.strip()), float(price.strip()))
 
 def match_entry(buy, sell):
-        vol = 0
+        vl = 0
         pr = 0
         if buy[2] > sell[2]:
                 pr = buy[2]
