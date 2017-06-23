@@ -7,31 +7,31 @@ book = {}
 output = []
 
 def parse_entry(line):
-	try:
-		check = True
-	        trader, inst, vol, price = line.split(":")
-		if (not trader or not inst or not vol or not price) or (vol == 0) or (price < 0):
-			check = False
-			print("Found an order with invalid properties")
+        try:
+        	check = True
+                trader, inst, vol, price = line.split(":")
+        	if (not trader or not inst or not vol or not price) or (vol == 0) or (price < 0):
+        		check = False
+        		print("Found an order with invalid properties")
 
                 return (trader.strip(), inst.strip(), float(vol.strip()), float(price.strip())), check
 
-	# Check if the order has all the properties
-	except ValueError:
-		print("Found an Order with missing properties")		
-		return [], False
+        # Check if the order has all the properties
+        except ValueError:
+        	print("Found an Order with missing properties")		
+        	return [], False
 
 def match_entry(buy, sell, ref):
         (buy_id, buy_vol, buy_price) = buy
-	(sell_id, sell_vol, sell_price) = sell
-	trade_vol = 0
+        (sell_id, sell_vol, sell_price) = sell
+        trade_vol = 0
         trade_price = 0
-	
+        
         if buy_price >= sell_price:
-		if ref is 'buy':
-			trade_price = buy_price
-		else:
-			trade_price = sell_price
+        	if ref is 'buy':
+        		trade_price = buy_price
+        	else:
+        		trade_price = sell_price
                 
                 if buy_vol > sell_vol:
                         trade_vol = sell_vol
@@ -89,15 +89,15 @@ def book_entry(entry):
                 buy = (trader, vol, price)
                 sell_orders = book.get(inst, {}).get('sell')
                 i = 0
-		while buy[1] > 0 and i < len(sell_orders) and buy[2] >= sell_orders[i][2]:
+        	while buy[1] > 0 and i < len(sell_orders) and buy[2] >= sell_orders[i][2]:
                         buy, sell, trade = match_entry(buy, sell_orders[i], 'sell')
                         i = i + 1
-			addTradeToOutput(trade, inst)
+        		addTradeToOutput(trade, inst)
 
                 # remove sold orders
                 sell_orders = [sells for sells in sell_orders if sells[1] > 0]
                 
-		# insert reminder of buy order
+        	# insert reminder of buy order
                 if buy[1] > 0:
                         buy_orders = book.get(inst, {}).get('buy')
                         buy_orders = insert_buy_order(buy, buy_orders)
@@ -110,7 +110,7 @@ def book_entry(entry):
                 while sell[1] > 0 and i < len(buy_orders) and sell[2] <= buy_orders[i][2]:
                         buy, sell, trade = match_entry(buy_orders[i], sell, 'buy')
                         i = i + 1
-	                addTradeToOutput(trade, inst)
+                        addTradeToOutput(trade, inst)
 
                 # remove bought orders
                 buy_orders = [buys for buys in buy_orders if buys[1] > 0]
@@ -126,9 +126,9 @@ def book_entry(entry):
 # Read orders from input
 for line in sys.stdin:
         entry, check = parse_entry(line)
-	if check:
-	        book_entry(entry)
+        if check:
+                book_entry(entry)
 
 # Write trades to output
 for elem in output:
-	print elem
+        print elem
