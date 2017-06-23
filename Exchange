@@ -47,24 +47,26 @@ def match_entry(buy, sell, ref):
 
 def insert_buy_order(buy, buy_orders):
         i = 0
-        find = False
-        while not find and i < len(buy_orders) :
-                if buy[2] < buy_orders[i][2]:
+        buy_id, buy_vol, buy_price = buy
+
+        while i < len(buy_orders) :
+                if buy_price <= buy_orders[i][2]:
                         i = i + 1
                 else:
-                        find = True
+                        break    
 
         buy_orders.insert(i, buy)
         return buy_orders
 
 def insert_sell_order(sell, sell_orders):
         i = 0
-        find = False
-        while not find and i < len(sell_orders) :
-                if sell[2] > sell_orders[i][2]:
+        sell_id, sell_vol, sell_price = sell        
+
+        while i < len(sell_orders) :
+                if sell_price >= sell_orders[i][2]:
                         i = i + 1
                 else:
-                        find = True
+                        break
 
         sell_orders.insert(i, sell)
         return sell_orders
@@ -87,7 +89,7 @@ def book_entry(entry):
 
         if vol > 0:
                 buy = (trader, vol, price)
-                sell_orders = book.get(inst, {}).get('sell')
+                sell_orders = book[inst]['sell']
                 i = 0
         	while buy[1] > 0 and i < len(sell_orders) and buy[2] >= sell_orders[i][2]:
                         buy, sell, trade = match_entry(buy, sell_orders[i], 'sell')
@@ -99,13 +101,13 @@ def book_entry(entry):
                 
         	# insert reminder of buy order
                 if buy[1] > 0:
-                        buy_orders = book.get(inst, {}).get('buy')
+                        buy_orders = book[inst]['buy']
                         buy_orders = insert_buy_order(buy, buy_orders)
                         book[inst]['buy'] = buy_orders
 
         if vol < 0:
                 sell = (trader, abs(vol), price)
-                buy_orders = book.get(inst, {}).get('buy')
+                buy_orders = book[inst]['buy']
                 i = 0
                 while sell[1] > 0 and i < len(buy_orders) and sell[2] <= buy_orders[i][2]:
                         buy, sell, trade = match_entry(buy_orders[i], sell, 'buy')
@@ -117,7 +119,7 @@ def book_entry(entry):
 
                 # insert reminder of buy order
                 if sell[1] > 0:
-                        sell_orders = book.get(inst, {}).get('sell')
+                        sell_orders = book[inst]['sell']
                         sell_orders = insert_sell_order(sell, sell_orders)
                         book[inst]['sell'] = sell_orders
 
