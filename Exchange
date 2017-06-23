@@ -10,21 +10,29 @@ def parse_entry(line):
         trader, inst, vol, price = line.split(":")
 	return (trader.strip(), inst.strip(), float(vol.strip()), float(price.strip()))
 
-def match_entry(buy, sell):
-        vl = 0
-        pr = 0
-        if buy[2] >= sell[2]:
-                pr = buy[2]
-                if buy[1] > sell[1]:
-                        vl = sell[1]
-                        buy = (buy[0], buy[1] - sell[1], buy[2])
-                        sell = (sell[0], 0, sell[2])
+def match_entry(buy, sell, ref):
+        (buy_id, buy_vol, buy_price) = buy
+	(sell_id, sell_vol, sell_price) = sell
+	trade_vol = 0
+        trade_price = 0
+	
+        if buy_price >= sell_price:
+		if ref is 'buy':
+			trade_price = buy_price
+		else:
+			trade_price = sell_price
+                
+                if buy_vol > sell_vol:
+                        trade_vol = sell_vol
+                        buy = (buy_id, buy_vol - sell_vol, buy_price)
+                        sell = (sell_id, 0, sell_price)
                 else:
-                        vl = buy[1]
-                        buy = (buy[0],0, buy[2])
-                        sell = (sell[0], sell[1] - buy[1], sell[2])
+                        trade_vol = buy_vol
+                        buy = (buy_id, 0, buy_price)
+                        sell = (sell_id, sell_vol - buy_vol, sell_price)
 
-        trade = (buy[0], sell[0], vl, pr)
+        trade = (buy_id, ':', sell_id, ':', str(trade_vol), ':', str(trade_price))
+	trade = ''.join(trade)
         return buy, sell, trade
 
 def insert_buy_order(buy, buy_orders):
@@ -65,7 +73,7 @@ def book_entry(entry):
                 sell_orders = book.get(inst, {}).get('sell')
                 i = 0
 		while buy[1] > 0 and i < len(sell_orders) and buy[2] >= sell_orders[i][2]:
-                        buy, sell, trade = match_entry(buy, sell_orders[i])
+                        buy, sell, trade = match_entry(buy, sell_orders[i], 'sell')
                         i = i + 1
                         if trade[2] > 0:
                                 output.append(trade)
@@ -84,7 +92,7 @@ def book_entry(entry):
                 buy_orders = book.get(inst, {}).get('buy')
                 i = 0
                 while sell[1] > 0 and i < len(buy_orders) and sell[2] <= buy_orders[i][2]:
-                        buy, sell, trade = match_entry(buy_orders[i], sell)
+                        buy, sell, trade = match_entry(buy_orders[i], sell, 'buy')
                         i = i + 1
                         if trade[2] > 0:
                                 output.append(trade)
@@ -100,9 +108,11 @@ def book_entry(entry):
 
 
 
-
+# Read orders from input
 for line in sys.stdin:
         entry = parse_entry(line)
         book_entry(entry)
 
-print output
+# Write trades to output
+for elem in output:
+	print elem
