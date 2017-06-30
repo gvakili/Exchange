@@ -93,13 +93,16 @@ def book_entry(entry):
                 i = 0
         	while buy[1] > 0 and i < len(sell_orders) and buy[2] >= sell_orders[i][2]:
                         buy, sell, trade = match_entry(buy, sell_orders[i], 'sell')
+                        sell_orders[i] = sell
                         i = i + 1
         		addTradeToOutput(trade, inst)
 
-                # remove sold orders
+                # update book:
+                # 1) remove sold orders
                 sell_orders = [sells for sells in sell_orders if sells[1] > 0]
-                
-        	# insert reminder of buy order
+                book[inst]['sell'] = sell_orders
+       
+        	# 2) insert reminder of buy order
                 if buy[1] > 0:
                         buy_orders = book[inst]['buy']
                         buy_orders = insert_buy_order(buy, buy_orders)
@@ -111,13 +114,16 @@ def book_entry(entry):
                 i = 0
                 while sell[1] > 0 and i < len(buy_orders) and sell[2] <= buy_orders[i][2]:
                         buy, sell, trade = match_entry(buy_orders[i], sell, 'buy')
+                        buy_orders[i] = buy
                         i = i + 1
                         addTradeToOutput(trade, inst)
 
-                # remove bought orders
+                # update book:
+                # 1) remove bought orders
                 buy_orders = [buys for buys in buy_orders if buys[1] > 0]
+                book[inst]['buy'] = buy_orders
 
-                # insert reminder of buy order
+                # 2) insert reminder of buy order
                 if sell[1] > 0:
                         sell_orders = book[inst]['sell']
                         sell_orders = insert_sell_order(sell, sell_orders)
@@ -134,3 +140,4 @@ for line in sys.stdin:
 # Write trades to output
 for elem in output:
         print elem
+
