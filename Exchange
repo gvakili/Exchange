@@ -48,8 +48,9 @@ def match_entry(buy, sell, ref):
 def insert_buy_order(buy, buy_orders):
         i = 0
         buy_id, buy_vol, buy_price = buy
+        num_of_buy_orders = len(buy_orders)
 
-        while i < len(buy_orders) :
+        while i < num_of_buy_orders :
                 if buy_price <= buy_orders[i][2]:
                         i = i + 1
                 else:
@@ -61,8 +62,9 @@ def insert_buy_order(buy, buy_orders):
 def insert_sell_order(sell, sell_orders):
         i = 0
         sell_id, sell_vol, sell_price = sell        
+        num_of_sell_orders = len(sell_orders)
 
-        while i < len(sell_orders) :
+        while i < num_of_sell_orders :
                 if sell_price >= sell_orders[i][2]:
                         i = i + 1
                 else:
@@ -91,7 +93,9 @@ def book_entry(entry):
                 buy = (trader, vol, price)
                 sell_orders = book[inst]['sell']
                 i = 0
-        	while buy[1] > 0 and i < len(sell_orders) and buy[2] >= sell_orders[i][2]:
+                num_of_sell_orders = len(sell_orders)
+
+        	while buy[1] > 0 and i < num_of_sell_orders and buy[2] >= sell_orders[i][2]:
                         buy, sell, trade = match_entry(buy, sell_orders[i], 'sell')
                         sell_orders[i] = sell
                         i = i + 1
@@ -112,7 +116,9 @@ def book_entry(entry):
                 sell = (trader, abs(vol), price)
                 buy_orders = book[inst]['buy']
                 i = 0
-                while sell[1] > 0 and i < len(buy_orders) and sell[2] <= buy_orders[i][2]:
+                num_of_buy_orders = len(buy_orders)
+
+                while sell[1] > 0 and i < num_of_buy_orders and sell[2] <= buy_orders[i][2]:
                         buy, sell, trade = match_entry(buy_orders[i], sell, 'buy')
                         buy_orders[i] = buy
                         i = i + 1
