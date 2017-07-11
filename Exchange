@@ -4,7 +4,6 @@ import sys
 
 
 book = {}
-output = []
 
 def parse_entry(line):
         try:
@@ -73,12 +72,12 @@ def insert_sell_order(sell, sell_orders):
         sell_orders.insert(i, sell)
         return sell_orders
 
-def addTradeToOutput(trade, inst):
+def printTradeToOutput(trade, inst):
         buy_id, sell_id, trade_vol, trade_price = trade
         if trade_vol > 0:
                trade = (buy_id, ':', sell_id, ':', inst, ':', str(trade_vol), ':', str(trade_price))
                trade = ''.join(trade)
-               output.append(trade)
+               print trade
 
 def book_entry(entry):
         global output
@@ -99,7 +98,7 @@ def book_entry(entry):
                         buy, sell, trade = match_entry(buy, sell_orders[i], 'sell')
                         sell_orders[i] = sell
                         i = i + 1
-        		addTradeToOutput(trade, inst)
+        		printTradeToOutput(trade, inst)
 
                 # update book:
                 # 1) remove sold orders
@@ -122,7 +121,7 @@ def book_entry(entry):
                         buy, sell, trade = match_entry(buy_orders[i], sell, 'buy')
                         buy_orders[i] = buy
                         i = i + 1
-                        addTradeToOutput(trade, inst)
+                        printTradeToOutput(trade, inst)
 
                 # update book:
                 # 1) remove bought orders
@@ -143,7 +142,4 @@ for line in sys.stdin:
         if check:
                 book_entry(entry)
 
-# Write trades to output
-for elem in output:
-        print elem
 
